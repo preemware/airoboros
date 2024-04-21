@@ -509,8 +509,19 @@ class SelfInstructor:
             model=model,
             messages=[ChatMessage(role="user", content=instruction)]
         )
+        
+        text = chat_response.choices[0].message.content
+        
+        if filter_response:
+            for banned in self.response_filters:
+                if banned.search(text, re.I):
+                    logger.warning(f"Banned response [{banned}]: {text}")
+                    return None
+            if text.startswith(("I'm sorry,", "Apologies,", "I can't", "I won't")):
+                logger.warning(f"Banned response [apology]: {text}")
+                return None
 
-        return chat_response.choices[0].message.content.strip()
+        return text.strip()
             
     async def _post_no_exc_openai(self, *a, **k):
         """Post to OpenAI, ignoring all exceptions."""
