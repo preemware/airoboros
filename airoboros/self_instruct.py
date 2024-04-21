@@ -491,7 +491,34 @@ class SelfInstructor:
                     )
                 logger.debug(f"token usage: {self.used_tokens}")
                 return result
-            
+
+    @backoff.on_exception(
+        backoff.fibo,
+        (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.Timeout,
+            ServerError,
+            RateLimitError,
+            TooManyRequestsError,
+            ServerOverloadedError,
+        ),
+        max_value=19,
+    )
+    async def _request_mistralai(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        client = MistralAsyncClient(api_key=self.mistral_api_token, timeout=600.0)
+        try:
+            response = await client.chat(**payload)
+            result = response.choices[0].message.content
+            return result
+        except MistralAPIStatusException as e:
+            raise BadResponseError(str(e))
+        except MistralException as e:
+            raise ServerError(str(e))
+        except httpx.ReadError as e:
+            raise ServerError(f"Read error: {str(e)}")
+        finally:
+            await client.close()
+
     async def generate_response_mistralai(self, instruction: str, **kwargs) -> str:
         """
         Call the model endpoint with the specified instruction and return the text response.
@@ -505,37 +532,29 @@ class SelfInstructor:
         model = kwargs.get("model", self.model)
         payload = {**kwargs}
         max_tokens = payload.pop("max_tokens", payload.pop("maxDecodeSteps", None)) or 2048
-        
         temperature = payload.pop("temperature", None)
         top_p = payload.pop("top_p", None)
-        
-        client = MistralAsyncClient(api_key=self.mistral_api_token, timeout=600.0)
+
+        payload_messages = []
+        for message in messages:
+            payload_messages.append(ChatMessage(role=message.role, content=message.content))
+
+        if instruction:
+            payload_messages.append(ChatMessage(role="user", content=instruction))
+
+        payload = {
+            "model": model,
+            "temperature": temperature,
+            "top_p": top_p,
+            "max_tokens": max_tokens,
+            "messages": payload_messages,
+        }
 
         try:
-            payload_messages = []
-            context = None
-            for message in messages:
-                payload_messages.append(ChatMessage(role=message.role, content=message.content))
-            if instruction:
-                payload_messages.append(ChatMessage(role="user", content=instruction))
+            text = await self._request_mistralai(payload)
+        except (BadResponseError, ServerError) as e:
+            raise e
 
-            chat_response = await client.chat(
-                model=model,
-                temperature=temperature,
-                top_p=top_p,
-                max_tokens=max_tokens,
-                messages=payload_messages,
-            )
-            text = chat_response.choices[0].message.content
-        except MistralAPIStatusException:
-            raise BadResponseError(text)
-        except MistralException as e:
-            raise ServerError(str(e))
-        except httpx.ReadError as e:
-            raise ServerError(f"Read error: {str(e)}")
-        finally:
-            await client.close()
-        
         if filter_response:
             for banned in self.response_filters:
                 if banned.search(text, re.I):
