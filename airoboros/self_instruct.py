@@ -503,7 +503,7 @@ class SelfInstructor:
         filter_response = kwargs.pop("filter_response", True)
         model = kwargs.get("model", self.model)
 
-        client = MistralClient(api_key=self.mistral_api_token)
+        client = MistralClient(api_key=self.mistral_api_token, timeout=600.0)
 
         chat_response = client.chat(
             model=model,
