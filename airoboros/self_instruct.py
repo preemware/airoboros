@@ -511,7 +511,7 @@ class SelfInstructor:
             messages=[ChatMessage(role="user", content=instruction)]
         )
         
-        text = chat_response.choices[0].message.content
+        text = chat_response.choices[0].message.content.strip()
         
         await client.close()
                 
@@ -524,7 +524,7 @@ class SelfInstructor:
                 logger.warning(f"Banned response [apology]: {text}")
                 return None
 
-        return text.strip()
+        return text
             
     async def _post_no_exc_openai(self, *a, **k):
         """Post to OpenAI, ignoring all exceptions."""
