@@ -36,6 +36,8 @@ from airoboros.exceptions import (
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer
 from txtai.pipeline import HFOnnx
+from mistralai.client import MistralClient
+from mistralai.models.chat_completion import ChatMessage
 
 # Defaults and constants.
 MAX_DOCSTORE_SIZE = 15000
@@ -57,8 +59,16 @@ OPENAI_MODELS = [
     "gpt-4-turbo-preview",
     "gpt-3.5-turbo-1106",
     "gpt-3.5-turbo-16k",
-    "gpt-4-0125-preview",
-    "meta-llama/Llama-3-70b-chat-hf"
+    "gpt-4-0125-preview"
+]
+
+MISTRAL_MODELS = [
+    "open-mistral-7b",
+    "open-mixtral-8x7b",
+    "open-mixtral-8x22b",
+    "mistral-small-latest",
+    "mistral-medium-latest",
+    "mistral-large-latest"
 ]
 
 # Base URL for vertexai.
@@ -96,6 +106,7 @@ class SelfInstructor:
         """Load an advanced configuration from a YAML file."""
         raw_config = self.raw_config = yaml.safe_load(open(self.config_path).read())
         self.model = raw_config.get("model") or "gpt-4"
+        self.mistral_api_token = raw_config.get("mistral_api_token")
         self.openai_api_key = raw_config.get("openai_api_key") or os.environ.get(
             "OPENAI_API_KEY"
         )
@@ -215,10 +226,10 @@ class SelfInstructor:
 
     def validate_vertexai_model(self, model):
         """Ensure the specified model is available in vertexai."""
-        #if "chat" not in model:
-        #    raise ValueError(
-        #        "Currently, only the chat models are supported for vertexai, sorry"
-        #   )
+        if "chat" not in model:
+            raise ValueError(
+                "Currently, only the chat models are supported for vertexai, sorry"
+           )
         test_payload = {
             "instances": [{"messages": [{"author": "user", "content": "hello"}]}],
             "parameters": {"temperature": 0.1, "maxOutputTokens": 1},
@@ -238,6 +249,23 @@ class SelfInstructor:
         except Exception:
             raise ValueError(f"Error trying to validate vertexai model: {model}")
 
+    def validate_mistral_model(self, model):
+        api_key = self.mistral_api_token
+
+        try:
+            client = MistralClient(api_key=api_key)
+
+            chat_response = client.chat(
+                model=model,
+                messages=[ChatMessage(role="user", content="What is the best French cheese?")]
+            )
+
+            print(chat_response.choices[0].message.content)
+            logger.success(f"Successfully validated model: {model}")
+        except Exception:
+            raise ValueError(f"Error trying to validate vertexai model: {model}")
+
+
     def validate_openai_model(self, model):
         logger.success(f"Successfully validated model: {model}")
 
@@ -245,6 +273,8 @@ class SelfInstructor:
         """Validate a model (openai or vertexai)."""
         if model in OPENAI_MODELS:
             return self.validate_openai_model(model)
+        elif model in MISTRAL_MODELS:
+            return self.validate_mistral_model(model)
         return self.validate_vertexai_model(model)
 
     async def initialize_topics(self) -> List[str]:
@@ -462,7 +492,29 @@ class SelfInstructor:
                     )
                 logger.debug(f"token usage: {self.used_tokens}")
                 return result
+            
+    async def generate_response_mistralai(self, instruction: str, **kwargs) -> str:
+        """Call the model endpoint with the specified instruction and return the text response.
 
+        :param instruction: The instruction to respond to.
+        :type instruction: str
+
+        :return: Response text.
+        :rtype: str
+        """
+        messages = copy.deepcopy(kwargs.pop("messages", None) or [])
+        filter_response = kwargs.pop("filter_response", True)
+        model = kwargs.get("model", self.model)
+
+        client = MistralClient(api_key=self.mistral_api_token)
+
+        chat_response = client.chat(
+            model=model,
+            messages=[ChatMessage(role="user", content=instruction)]
+        )
+
+        return chat_response.choices[0].message.content.strip()
+            
     async def _post_no_exc_openai(self, *a, **k):
         """Post to OpenAI, ignoring all exceptions."""
         try:
@@ -589,6 +641,8 @@ class SelfInstructor:
         model = kwargs.pop("model", None) or self.model
         if model in OPENAI_MODELS:
             return await self.generate_response_openai(instruction, **kwargs)
+        elif model in MISTRAL_MODELS:
+            return await self.generate_response_mistralai(instruction, **kwargs)
         return await self.generate_response_vertexai(instruction, **kwargs)
 
     async def is_decent_response(self, item):
