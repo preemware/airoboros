@@ -37,8 +37,9 @@ from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer
 from txtai.pipeline import HFOnnx
 from mistralai.client import MistralClient
+from mistralai.async_client import MistralAsyncClient
 from mistralai.models.chat_completion import ChatMessage
-
+from mistralai.exceptions import MistralException, MistralAPIException, MistralAPIStatusException, MistralConnectionException
 # Defaults and constants.
 MAX_DOCSTORE_SIZE = 15000
 OPENAI_API_BASE_URL = "https://api.together.xyz/v1"
@@ -503,14 +504,16 @@ class SelfInstructor:
         filter_response = kwargs.pop("filter_response", True)
         model = kwargs.get("model", self.model)
 
-        client = MistralClient(api_key=self.mistral_api_token, timeout=600.0)
+        client = MistralAsyncClient(api_key=self.mistral_api_token, timeout=600.0)
 
-        chat_response = client.chat(
+        chat_response = await client.chat(
             model=model,
             messages=[ChatMessage(role="user", content=instruction)]
         )
         
         text = chat_response.choices[0].message.content
+        
+        await client.close()
                 
         if filter_response:
             for banned in self.response_filters:
