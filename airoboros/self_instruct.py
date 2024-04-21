@@ -39,7 +39,7 @@ from txtai.pipeline import HFOnnx
 
 # Defaults and constants.
 MAX_DOCSTORE_SIZE = 15000
-OPENAI_API_BASE_URL = "https://api.openai.com"
+OPENAI_API_BASE_URL = "https://api.together.xyz/v1"
 READABILITY_HINT = "The output should be written in such a way as to have a Flesch-Kincaid readability score of 30 or lower - best understood by those with college education.  Only output the story - don't add any notes or information about Flesch-Kincaid scores."
 
 # List of OpenAI models we support (there are others, but skipping for now...)
@@ -58,6 +58,7 @@ OPENAI_MODELS = [
     "gpt-3.5-turbo-1106",
     "gpt-3.5-turbo-16k",
     "gpt-4-0125-preview",
+    "meta-llama/Llama-3-70b-chat-hf"
 ]
 
 # Base URL for vertexai.

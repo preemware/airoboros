@@ -18,3 +18,4 @@ topics*.txt
 *.jsonl
 .env
 .vscode
+creds.json
