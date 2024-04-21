@@ -32,6 +32,7 @@ setup(
         "uvicorn>=0.23.0",
         "optimum==1.12.0",
         "google-auth==2.25.1",
+        "mistralai"
     ],
     extras_require={
         "dev": [

@@ -141,6 +141,17 @@ instructors:
     # Output formatting options.
     formatting_options:
       - JSON
+      - YAML
+      - CSV
+      - markdown
+      - markdown table
+      - bullet list
+      - numbered list
+      - python dict
+      - php associative array
+      - JSONL
+      - javascript object
+      - XML
 
     # Prompt path.
     prompt_path: contextual.txt
@@ -343,7 +354,7 @@ instructors:
       - fantastical
       - heartwarming
       - romantic
-    count: 100
+    count: 0
     batch_size: 12
     min_docsearch_score: 0.1
 

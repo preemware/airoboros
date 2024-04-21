@@ -503,15 +503,27 @@ class SelfInstructor:
         messages = copy.deepcopy(kwargs.pop("messages", None) or [])
         filter_response = kwargs.pop("filter_response", True)
         model = kwargs.get("model", self.model)
+        
+        payload = {**kwargs}
+        max_tokens = payload.pop("max_tokens", payload.pop("maxDecodeSteps", None)) or 2048
+        
+        if "temperature" in payload:
+            temperature = payload.pop("temperature")
+            
+        if "top_p" in payload:
+            top_p = payload.pop("top_p")
 
         client = MistralAsyncClient(api_key=self.mistral_api_token, timeout=600.0)
 
         chat_response = await client.chat(
             model=model,
+            temperature=temperature or None,
+            top_p=top_p or None,
+            max_tokens=max_tokens,
             messages=[ChatMessage(role="user", content=instruction)]
         )
         
-        text = chat_response.choices[0].message.content.strip()
+        text = chat_response.choices[0].message.content
         
         await client.close()
                 
@@ -524,7 +536,7 @@ class SelfInstructor:
                 logger.warning(f"Banned response [apology]: {text}")
                 return None
 
-        return text
+        return text.strip()
             
     async def _post_no_exc_openai(self, *a, **k):
         """Post to OpenAI, ignoring all exceptions."""
