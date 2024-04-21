@@ -1017,12 +1017,12 @@ class SelfInstructor:
                     running_total += 1
                     preview = item["rp"][0]["content"].splitlines()[0][:100]
             else:
-                running_total += 1
-                preview = item["instruction"].splitlines()[0][0:100]
-            if preview:
-                logger.success(
-                    f"Generated unique instruction [{category}, total={running_total}]: {preview}"
-                )
+                if "instruction" in item:
+                    running_total += 1
+                    preview = item["instruction"].splitlines()[0][0:100]
+                else:
+                    preview = None
+                    
         delta = (datetime.datetime.now() - started_at).total_seconds()
         logger.success(
             f"Finished generating {running_total} instructions [{category}] in {delta} seconds."
