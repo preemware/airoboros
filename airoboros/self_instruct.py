@@ -121,11 +121,8 @@ class SelfInstructor:
             self._vertexai_publisher = raw_config.get(
                 "vertexai_publisher", "google"
             )
-        if not self.openai_api_key:
-            if not raw_config.get("vertexai_credentials_path"):
-                raise ValueError(
-                    "OpenAI API key or vertexai_credentials_path must be provided!"
-                )
+                
+                
         self.organization_id = raw_config.get("organization_id")
         self.topics_path = raw_config.get("topics_path") or "topics.txt"
         self.output_path = raw_config.get("output_path") or "instructions.jsonl"
