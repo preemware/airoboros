@@ -239,18 +239,6 @@ class SelfInstructor:
             raise ValueError(f"Error trying to validate vertexai model: {model}")
 
     def validate_openai_model(self, model):
-        """Ensure the specified model is available."""
-        headers = {"Authorization": f"Bearer {self.openai_api_key}"}
-        if self.organization_id:
-            headers["OpenAI-Organization"] = self.organization_id
-        result = requests.get(f"{OPENAI_API_BASE_URL}/v1/models", headers=headers)
-        if result.status_code != 200:
-            raise ValueError(
-                f"Invalid openai API key [{result.status_code}: {result.text}]"
-            )
-        available = {item["id"] for item in result.json()["data"]}
-        if model not in available:
-            raise ValueError(f"Model is not available to your API key: {model}")
         logger.success(f"Successfully validated model: {model}")
 
     def validate_model(self, model):
