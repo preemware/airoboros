@@ -528,7 +528,9 @@ class SelfInstructor:
             await client.close()
         except MistralAPIStatusException:
             raise BadResponseError(text)
-
+        except MistralException:
+            raise ServerError(text)
+            
         if filter_response:
             for banned in self.response_filters:
                 if banned.search(text, re.I):
