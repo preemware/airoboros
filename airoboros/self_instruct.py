@@ -507,6 +507,8 @@ class SelfInstructor:
         
         temperature = payload.pop("temperature", None)
         top_p = payload.pop("top_p", None)
+        
+        client = MistralAsyncClient(api_key=self.mistral_api_token, timeout=600.0)
 
         try:
             payload_messages = []
@@ -516,7 +518,6 @@ class SelfInstructor:
             if instruction:
                 payload_messages.append(ChatMessage(role="user", content=instruction))
 
-            client = MistralAsyncClient(api_key=self.mistral_api_token, timeout=600.0)
             chat_response = await client.chat(
                 model=model,
                 temperature=temperature,
@@ -525,12 +526,13 @@ class SelfInstructor:
                 messages=payload_messages,
             )
             text = chat_response.choices[0].message.content
-            await client.close()
         except MistralAPIStatusException:
             raise BadResponseError(text)
         except MistralException:
             raise ServerError(text)
-            
+        
+        await client.close()
+        
         if filter_response:
             for banned in self.response_filters:
                 if banned.search(text, re.I):
