@@ -1006,23 +1006,29 @@ class SelfInstructor:
         if category not in method_map:
             logger.warning(f"Unknown category: {category}, skipping...")
             return
+
         logger.info(f"Generating instructions for {category}...")
         started_at = datetime.datetime.now()
         running_total = self.instructor_counts.get(category, 0)
+
         async for item in method_map[category](self, **kwargs):
             self.persist(item)
             preview = None
+
             if category == "rp":
-                if "rp" in item:
+                if "rp" in item and item["rp"]:
                     running_total += 1
                     preview = item["rp"][0]["content"].splitlines()[0][:100]
             else:
                 if "instruction" in item:
                     running_total += 1
                     preview = item["instruction"].splitlines()[0][0:100]
-                else:
-                    preview = None
-                    
+
+            if preview:
+                logger.success(
+                    f"Generated unique instruction [{category}, total={running_total}]: {preview}"
+                )
+
         delta = (datetime.datetime.now() - started_at).total_seconds()
         logger.success(
             f"Finished generating {running_total} instructions [{category}] in {delta} seconds."
