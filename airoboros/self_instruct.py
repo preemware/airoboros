@@ -6,6 +6,7 @@ import copy
 import datetime
 import faiss
 import os
+import httpx
 import json
 import math
 import numpy as np
@@ -528,10 +529,12 @@ class SelfInstructor:
             text = chat_response.choices[0].message.content
         except MistralAPIStatusException:
             raise BadResponseError(text)
-        except MistralException:
-            raise ServerError(text)
-        
-        await client.close()
+        except MistralException as e:
+            raise ServerError(str(e))
+        except httpx.ReadError as e:
+            raise ServerError(f"Read error: {str(e)}")
+        finally:
+            await client.close()
         
         if filter_response:
             for banned in self.response_filters:
