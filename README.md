@@ -16,7 +16,8 @@ pip install --no-build-isolation airoboros
 from source (keeping the source):
 ```
 git clone https://github.com/jondurbin/airoboros
-pip install -e --no-build-isolation ./airoboros
+cd airoboros
+pip install -e . --no-build-isolation
 ```
 
 ## Key differences from self-instruct/alpaca
