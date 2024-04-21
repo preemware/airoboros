@@ -492,46 +492,54 @@ class SelfInstructor:
                 return result
             
     async def generate_response_mistralai(self, instruction: str, **kwargs) -> str:
-        """Call the model endpoint with the specified instruction and return the text response.
-
+        """
+        Call the model endpoint with the specified instruction and return the text response.
         :param instruction: The instruction to respond to.
         :type instruction: str
-
         :return: Response text.
         :rtype: str
         """
         messages = copy.deepcopy(kwargs.pop("messages", None) or [])
         filter_response = kwargs.pop("filter_response", True)
         model = kwargs.get("model", self.model)
-        
         payload = {**kwargs}
         max_tokens = payload.pop("max_tokens", payload.pop("maxDecodeSteps", None)) or 2048
-        
-        if "temperature" in payload:
-            temperature = payload.pop("temperature")
-            
-        if "top_p" in payload:
-            top_p = payload.pop("top_p")
 
+        if instruction:
+            messages.append(ChatMessage(role="user", content=instruction))
+
+        temperature = payload.pop("temperature", None)
+        top_p = payload.pop("top_p", None)
 
         try:
-            client = MistralAsyncClient(api_key=self.mistral_api_token, timeout=600.0)
+            payload_messages = []
+            context = None
+            for message in messages:
+                if message["role"] == "system":
+                    context = message["content"]
+                else:
+                    payload_messages.append(
+                        {
+                            "author": message["role"],
+                            "content": message["content"],
+                        }
+                    )
+            if instruction:
+                payload_messages.append({"author": "user", "content": instruction})
 
+            client = MistralAsyncClient(api_key=self.mistral_api_token, timeout=600.0)
             chat_response = await client.chat(
                 model=model,
-                temperature=temperature or None,
-                top_p=top_p or None,
+                temperature=temperature,
+                top_p=top_p,
                 max_tokens=max_tokens,
-                messages=[ChatMessage(role="user", content=instruction)]
+                messages=payload_messages,
             )
-            
             text = chat_response.choices[0].message.content
-            
             await client.close()
         except MistralAPIStatusException:
             raise BadResponseError(text)
-        
-                
+
         if filter_response:
             for banned in self.response_filters:
                 if banned.search(text, re.I):
