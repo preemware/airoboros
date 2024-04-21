@@ -512,28 +512,13 @@ class SelfInstructor:
         top_p = payload.pop("top_p", None)
 
         try:
-            payload_messages = []
-            context = None
-            for message in messages:
-                if message["role"] == "system":
-                    context = message["content"]
-                else:
-                    payload_messages.append(
-                        {
-                            "author": message["role"],
-                            "content": message["content"],
-                        }
-                    )
-            if instruction:
-                payload_messages.append({"author": "user", "content": instruction})
-
             client = MistralAsyncClient(api_key=self.mistral_api_token, timeout=600.0)
             chat_response = await client.chat(
                 model=model,
                 temperature=temperature,
                 top_p=top_p,
                 max_tokens=max_tokens,
-                messages=payload_messages,
+                messages=messages,
             )
             text = chat_response.choices[0].message.content
             await client.close()
@@ -550,7 +535,7 @@ class SelfInstructor:
                 return None
 
         return text.strip()
-            
+    
     async def _post_no_exc_openai(self, *a, **k):
         """Post to OpenAI, ignoring all exceptions."""
         try:
