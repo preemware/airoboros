@@ -36,7 +36,7 @@ from airoboros.exceptions import (
 from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer
 from txtai.pipeline import HFOnnx
-from mistralai.client import MistralClient
+from mistralai.async_client import MistralAsyncClient
 from mistralai.models.chat_completion import ChatMessage
 
 # Defaults and constants.
@@ -246,18 +246,19 @@ class SelfInstructor:
         except Exception:
             raise ValueError(f"Error trying to validate vertexai model: {model}")
 
-    def validate_mistral_model(self, model):
+    async def validate_mistral_model(self, model):
         api_key = self.mistral_api_token
 
         try:
-            client = MistralClient(api_key=api_key)
+            client = MistralAsyncClient(api_key=api_key)
 
-            chat_response = client.chat(
+            chat_response = await client.chat(
                 model=model,
                 messages=[ChatMessage(role="user", content="What is the best French cheese?")]
             )
 
             print(chat_response.choices[0].message.content)
+            await client.close()
             logger.success(f"Successfully validated model: {model}")
         except Exception:
             raise ValueError(f"Error trying to validate vertexai model: {model}")
@@ -503,14 +504,16 @@ class SelfInstructor:
         filter_response = kwargs.pop("filter_response", True)
         model = kwargs.get("model", self.model)
 
-        client = MistralClient(api_key=self.mistral_api_token, timeout=600.0)
+        client = MistralAsyncClient(api_key=self.mistral_api_token, timeout=600.0)
 
-        chat_response = client.chat(
+        chat_response = await client.chat(
             model=model,
             messages=[ChatMessage(role="user", content=instruction)]
         )
         
         text = chat_response.choices[0].message.content
+        
+        await client.close()
         
         if filter_response:
             for banned in self.response_filters:
