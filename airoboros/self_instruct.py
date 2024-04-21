@@ -512,17 +512,9 @@ class SelfInstructor:
             payload_messages = []
             context = None
             for message in messages:
-                if message.role == "system":
-                    context = message.content
-                else:
-                    payload_messages.append(
-                        {
-                            "role": message.role,
-                            "content": message.content,
-                        }
-                    )
+                payload_messages.append(ChatMessage(role=message.role, content=message.content))
             if instruction:
-                payload_messages.append({"author": "user", "content": instruction})
+                payload_messages.append(ChatMessage(role="user", content=instruction))
 
             client = MistralAsyncClient(api_key=self.mistral_api_token, timeout=600.0)
             chat_response = await client.chat(
