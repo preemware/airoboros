@@ -37,6 +37,7 @@ from sentence_transformers import SentenceTransformer
 from transformers import AutoTokenizer
 from txtai.pipeline import HFOnnx
 from mistralai.async_client import MistralAsyncClient
+from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
 
 # Defaults and constants.
@@ -246,19 +247,18 @@ class SelfInstructor:
         except Exception:
             raise ValueError(f"Error trying to validate vertexai model: {model}")
 
-    async def validate_mistral_model(self, model):
+    def validate_mistral_model(self, model):
         api_key = self.mistral_api_token
 
         try:
-            client = MistralAsyncClient(api_key=api_key)
+            client = MistralClient(api_key=api_key)
 
-            chat_response = await client.chat(
+            chat_response = client.chat(
                 model=model,
                 messages=[ChatMessage(role="user", content="What is the best French cheese?")]
             )
 
             print(chat_response.choices[0].message.content)
-            await client.close()
             logger.success(f"Successfully validated model: {model}")
         except Exception:
             raise ValueError(f"Error trying to validate vertexai model: {model}")
