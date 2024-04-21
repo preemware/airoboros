@@ -504,10 +504,7 @@ class SelfInstructor:
         model = kwargs.get("model", self.model)
         payload = {**kwargs}
         max_tokens = payload.pop("max_tokens", payload.pop("maxDecodeSteps", None)) or 2048
-
-        if instruction:
-            messages.append(ChatMessage(role="user", content=instruction))
-
+        
         temperature = payload.pop("temperature", None)
         top_p = payload.pop("top_p", None)
 
@@ -520,7 +517,7 @@ class SelfInstructor:
                 else:
                     payload_messages.append(
                         {
-                            "author": message.role,
+                            "role": message.role,
                             "content": message.content,
                         }
                     )
