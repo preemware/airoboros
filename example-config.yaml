@@ -1,11 +1,11 @@
 # The model to use in generation.  Available models: https://platform.openai.com/docs/models/continuous-model-upgrades
-model: "gpt-4"
+#model: "gpt-4"
   
 # To use VertexAI (e.g. chat-bison or soon hopefully gemini):
-# model: "chat-bison"
-# vertexai_credentials_path: creds.json
-# vertexai_project_id: replace-project-id
-# vertexai_publisher: google
+model: "gemini-1.5-pro-preview-0409"
+vertexai_credentials_path: creds.json
+vertexai_project_id: ai-research-399700
+vertexai_publisher: anthropic
 
 # OpenAI API key (if null, uses environment variable OPENAI_API_KEY)
 openai_api_key:
@@ -27,9 +27,9 @@ append: true
 
 # Embedding model, for calculating similarity between documents; probably best left as-is since the code is fairly specific to this one.
 embedding_model: thenlper/gte-small
-embedding_device: cpu
+#embedding_device: cpu
 # If you have a GPU, set this to "cuda", e.g.:
-# embedding_device: cuda
+embedding_device: cuda
 
 # Topic avoidance prompt string.
 topic_avoidance: Avoid any tasks that would be related to climate change, green tech, renewable energy, DEI (diversity, equity, inclusion), sex and/or gender, religion, politics, social issues, race, ethnicity, artificial intelligence, baking/cooking, urban development, or any topic that you would likely not respond to, or any task which a language model would not be able to respond to, e.g. tasks about emotions, feelings, physical senses, etc.
@@ -90,7 +90,7 @@ instructors:
   general:
 
     # Number of instructions to generate.
-    count: 100
+    count: 0
 
     # Batch size/number of instructions to generate per request.
     batch_size: 10
@@ -113,7 +113,7 @@ instructors:
   contextual:
     api_params:
       temperature: 0.5
-    count: 70
+    count: 0
 
     # Writing styles to use for the context being generated.
     context_styles:
@@ -162,7 +162,7 @@ instructors:
   ##################################################################################
   # Counterfactual contextual prompts, used to de-hallucinate Q&A a bit.
   counterfactual_contextual:
-    count: 30
+    count: 0
     batch_size: 10
     prompt_path: counterfactual_contextual.txt
     response_prompt_path: counterfactual_contextual_response.txt
@@ -217,6 +217,31 @@ instructors:
       - cherrypy
       - swagger/openapi
       - pyramid web framework
+      - solr
+      - couchdb
+      - neo4j
+      - riak
+      - hbase
+      - influxdb
+      - arangodb
+      - google bigquery
+      - apache hive
+      - microsoft sql server
+      - oracle database
+      - apache kafka
+      - rabbitmq
+      - apache flink
+      - snowflake
+      - jupyter notebook
+      - tableau software
+      - apache airflow
+      - docker
+      - graphql
+      - fastapi
+      - flask
+      - splunk
+      - vmware
+
 
     # Min docsearch score.
     min_docsearch_score: 0.02
@@ -226,11 +251,11 @@ instructors:
 
   ##################################################################################
   # Trivia tasks.
-  trivia:
-    count: 100
-    batch_size: 20
-    min_docsearch_score: 0.035
-    prompt_path: trivia.txt
+  #trivia:
+  #  count: 100
+  #  batch_size: 20
+  #  min_docsearch_score: 0.035
+  #  prompt_path: trivia.txt
 
   ##################################################################################
   # Guided experiences, e.g. meditation.
@@ -239,7 +264,7 @@ instructors:
       temperature: 0.9
       top_p: 0.4
     word_count: 1000
-    count: 100
+    count: 0
     batch_size: 3
     min_docsearch_score: 0.1
     prompt_path: experience.txt
@@ -260,13 +285,13 @@ instructors:
       top_p: 0.4
     batch_size: 50
     min_docsearch_score: 0.01
-    count: 100
+    count: 0
     prompt_path: riddle.txt
 
   ##################################################################################
   # Wordgames.
   wordgame:
-    count: 100
+    count: 0
     batch_size: 10
     min_docsearch_score: 0.01
     prompt_path: wordgame.txt
@@ -276,7 +301,7 @@ instructors:
   roleplay:
     api_params:
       temperature: 0.9
-    count: 100
+    count: 0
     batch_size: 10
     min_docsearch_score: 0.1
     prompt_path: roleplay.txt
@@ -284,7 +309,7 @@ instructors:
   ##################################################################################
   # Chain-of-thought.
   cot:
-    count: 50
+    count: 0
     batch_size: 5
     min_docsearch_score: 0.03
     prompt_path: cot.txt
@@ -292,7 +317,7 @@ instructors:
   ##################################################################################
   # Agent/router.
   agent:
-    count: 100
+    count: 0
     batch_size: 5
     min_docsearch_score: 0.03
     prompt_path: agent.txt
@@ -300,7 +325,7 @@ instructors:
   ##################################################################################
   # reWOO style planner
   plan:
-    count: 100
+    count: 0
     batch_size: 1
     min_docsearch_score: 0.02
     prompt_path: plan.txt
@@ -335,7 +360,7 @@ instructors:
   card:
     api_params:
       temperature: 0.9
-    count: 50
+    count: 0
     batch_size: 5
     min_docsearch_score: 0.05
 
@@ -344,7 +369,7 @@ instructors:
   joke:
     api_params:
       temperature: 0.9
-    count: 100
+    count: 0
     batch_size: 20
     min_docsearch_score: 0.06
 
@@ -353,7 +378,7 @@ instructors:
   song:
     api_params:
       temperature: 0.9
-    count: 200
+    count: 0
     batch_size: 25
     min_docsearch_score: 0.1
 
@@ -362,7 +387,7 @@ instructors:
   multiple_choice:
     api_params:
       temperature: 0.5
-    count: 100
+    count: 0
     batch_size: 5
     min_docsearch_score: 0.03
     contextual_ratio: 0.3
@@ -382,7 +407,7 @@ instructors:
   character:
     api_params:
       temperature: 0.9
-    count: 25
+    count: 0
     batch_size: 1
     min_docsearch_score: 0.1
     seed_path: character_seeds
@@ -395,7 +420,7 @@ instructors:
       temperature: 0.9
       presence_penalty: 1.3
       frequency_penalty: 1.3
-    count: 25
+    count: 0
     turn_count: 12
 
   ##################################################################################
@@ -404,7 +429,7 @@ instructors:
     api_params:
       temperature: 0.7
     batch_size: 15
-    count: 100
+    count: 0
     min_docsearch_score: 0.3
     categories:
       - trivia
@@ -426,7 +451,7 @@ instructors:
     api_params:
       temperature: 0.7
     question_count: 15
-    count: 100
+    count: 0
 
   ##################################################################################
   # Common misconceptions.
@@ -435,19 +460,19 @@ instructors:
       temperature: 0.5
     batch_size: 25
     min_docsearch_score: 0.02
-    count: 500
+    count: 0
 
 
   ##################################################################################
   # Some semblence of awareness (time, location, senses).
   awareness:
-    count: 100
+    count: 50
     batch_size: 5
     min_docsearch_score: 0.1
 
   ##################################################################################
   # Basic text enhancement/correcting.
   editor:
-    count: 100
+    count: 50
     batch_size: 5
     min_docsearch_score: 0.01

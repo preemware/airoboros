@@ -214,10 +214,10 @@ class SelfInstructor:
 
     def validate_vertexai_model(self, model):
         """Ensure the specified model is available in vertexai."""
-        if "chat" not in model:
-            raise ValueError(
-                "Currently, only the chat models are supported for vertexai, sorry"
-            )
+        #if "chat" not in model:
+        #    raise ValueError(
+        #        "Currently, only the chat models are supported for vertexai, sorry"
+        #   )
         test_payload = {
             "instances": [{"messages": [{"author": "user", "content": "hello"}]}],
             "parameters": {"temperature": 0.1, "maxOutputTokens": 1},
@@ -231,6 +231,7 @@ class SelfInstructor:
                 model=model,
             )
             result = requests.post(url, json=test_payload, headers=headers)
+            print(result)
             assert result.status_code == 200
             logger.success(f"Successfully validated model: {model}")
         except Exception:
