@@ -299,7 +299,7 @@ class SelfInstructor:
                 todo = 8 if count >= 8 else count
                 responses = await asyncio.gather(
                     *[
-                        self.generate_response(self.topic_prompt, **self.api_params)
+                        self.generate_response_mistralai(self.topic_prompt, **self.api_params)
                         for _ in range(todo)
                     ]
                 )
